@@ -483,10 +483,14 @@ function init(rawData){
 }
 
 function parseRows(rows){
-  const headerRowIdx = rows.findIndex(r => (r[0]||'').toString().trim() === 'ID Conteúdo');
+  const headerRowIdx = rows.findIndex(r => r.some(c => (c||'').toString().trim() === 'Palestrante'));
   if(headerRowIdx === -1) throw new Error('header-not-found');
   const headers = rows[headerRowIdx];
-  const colKeys = headers.map(h => COLUMN_MAP[(h||'').toString().trim()] || null);
+  const colKeys = headers.map(h => {
+    const t = (h||'').toString().trim();
+    if(t.endsWith('ID Conteúdo')) return 'id';
+    return COLUMN_MAP[t] || null;
+  });
   const data = [];
   for(let r = headerRowIdx+1; r < rows.length; r++){
     const row = rows[r];
