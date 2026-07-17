@@ -408,8 +408,8 @@ select:focus{border-color:var(--navy);}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 /* ====== fontes de dados ao vivo (Google Sheets publicado em CSV) ====== */
-const CATALOG_CSV_URLS = ["https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/gviz/tq?tqx=out:csv&gid=403260780", "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIIkd9Bp1pr2P41oa8ncCFAc-XZGZnRVVKalTxhNxe2GH8nCDqlYqkCSA1vGSjxm2ZtCeAHtwwc2lq/pub?gid=403260780&single=true&output=csv"];
-const MVP_CSV_URLS = ["https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/gviz/tq?tqx=out:csv&gid=2063395467", "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIIkd9Bp1pr2P41oa8ncCFAc-XZGZnRVVKalTxhNxe2GH8nCDqlYqkCSA1vGSjxm2ZtCeAHtwwc2lq/pub?gid=2063395467&single=true&output=csv"];
+const CATALOG_CSV_URLS = ["https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/export?format=csv&gid=403260780", "https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/gviz/tq?tqx=out:csv&gid=403260780", "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIIkd9Bp1pr2P41oa8ncCFAc-XZGZnRVVKalTxhNxe2GH8nCDqlYqkCSA1vGSjxm2ZtCeAHtwwc2lq/pub?gid=403260780&single=true&output=csv"];
+const MVP_CSV_URLS = ["https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/export?format=csv&gid=2063395467", "https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/gviz/tq?tqx=out:csv&gid=2063395467", "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIIkd9Bp1pr2P41oa8ncCFAc-XZGZnRVVKalTxhNxe2GH8nCDqlYqkCSA1vGSjxm2ZtCeAHtwwc2lq/pub?gid=2063395467&single=true&output=csv"];
 
 const HEADER_MAP = {
   "ID Conteúdo":"id","ID Ativo de Origem":"idAtivo","Título Provisório":"tp","Título Final":"tf",
@@ -426,23 +426,19 @@ function clean(s){ return (s||"").toString().replace(/\s+\n/g,"\n").replace(/\n+
 function multiline(s){ return (s||"").toString().split("\n").map(x=>x.trim()).filter(Boolean); }
 function esc(s){ return (s||"").toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function fetchCsvSingle(url){
-  return new Promise((resolve, reject) => {
-    Papa.parse(url, {
-      download:true,
-      complete: (res) => {
-        if(!res.data || res.data.length < 2){ reject(new Error("CSV vazio")); return; }
-        resolve(res.data);
-      },
-      error: (err) => reject(err)
-    });
-  });
+async function fetchCsvSingle(url){
+  const res = await fetch(url, { credentials: "omit", cache: "no-store" });
+  if(!res.ok) throw new Error("HTTP " + res.status);
+  const text = await res.text();
+  const parsed = Papa.parse(text.trim(), { skipEmptyLines: false });
+  if(!parsed.data || parsed.data.length < 2) throw new Error("CSV vazio");
+  return parsed.data;
 }
 async function fetchCsv(urls){
   let lastErr;
   for(const url of urls){
     try{ return await fetchCsvSingle(url); }
-    catch(err){ console.warn("Falha ao buscar", url, err); lastErr = err; }
+    catch(err){ console.warn("Falha ao buscar", url, "-", err.message || err); lastErr = err; }
   }
   throw lastErr;
 }
