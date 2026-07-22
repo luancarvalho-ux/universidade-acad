@@ -271,6 +271,26 @@ select:focus{border-color:var(--navy);}
   color:var(--ink-dim);
 }
 .tag.theme{color:var(--gold-deep);border-color:var(--gold);background:var(--gold-tint);}
+.card-source{font-size:12px;color:var(--ink-faint);margin:-4px 0 12px;}
+.status-pill{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
+  letter-spacing:0.06em;border-radius:100px;padding:2px 9px;white-space:nowrap;
+  color:#CFE0F5;border:1px solid rgba(255,255,255,0.25);
+}
+.status-pill.st-publicado{background:rgba(66,166,110,0.22);color:#BFEAD1;border-color:rgba(66,166,110,0.5);}
+.status-pill.st-pronto{background:rgba(238,159,46,0.22);color:#FBDFAF;border-color:rgba(238,159,46,0.5);}
+.status-pill.st-curado{background:rgba(255,255,255,0.12);color:#CFE0F5;}
+.status-pill.st-revisar{background:rgba(200,70,70,0.22);color:#F3C6C6;border-color:rgba(200,70,70,0.5);}
+.panel .status-pill{color:var(--ink-dim);border-color:var(--line-strong);}
+.panel .status-pill.st-publicado{background:#E8F6EE;color:#1F7A46;border-color:#BEE6CE;}
+.panel .status-pill.st-pronto{background:var(--gold-tint);color:var(--gold-deep);border-color:var(--gold);}
+.panel .status-pill.st-curado{background:var(--navy-tint);color:var(--navy);border-color:var(--line-strong);}
+.panel .status-pill.st-revisar{background:#FBEAEA;color:#B23B3B;border-color:#F0C6C6;}
+.panel .id-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;}
+.btn-link.youtube{color:#B23B3B;border-color:#F0C6C6;}
+.btn-link.youtube:hover{background:#FBEAEA;border-color:#B23B3B;}
+.card-yt{color:var(--gold-deep);}
 .empty{
   text-align:center;
   padding:80px 20px;
@@ -394,6 +414,10 @@ select:focus{border-color:var(--navy);}
     <span class="select-label">Nível</span>
     <select id="fNivel"><option value="">Todos</option></select>
   </div>
+  <div class="select-group">
+    <span class="select-label">Status</span>
+    <select id="fStatus"><option value="">Todos</option></select>
+  </div>
 </div>
 
 <div class="count-line" id="countLine"></div>
@@ -419,8 +443,18 @@ const HEADER_MAP = {
   "Timecode Final":"tcFim","Duração Estimada (min)":"dur","Nota Imagem":"nImg","Nota Áudio":"nAudio",
   "Nota Atualidade":"na","Nota Conteúdo":"nc","Nota Didática":"nd","Potencial MVP":"mvp",
   "Necessita Edição":"ne","Direitos / Autorização":"direitos","Materiais Complementares":"materiais",
-  "Prioridade":"prioridade","Status":"status","Tags":"tags","Link / Referência":"link","Observações":"obs"
+  "Prioridade":"prioridade","Status":"status","Tags":"tags","Link / Referência":"link","Observações":"obs",
+  "Palestra":"palestra","Link YouTube":"linkYoutube","Link para YouTube":"linkYoutube","Link do YouTube":"linkYoutube"
 };
+
+function statusClass(status){
+  const s = (status||"").trim().toLowerCase();
+  if(s==="publicado") return "st-publicado";
+  if(s==="pronto para publicação") return "st-pronto";
+  if(s==="revisar") return "st-revisar";
+  if(s==="curado") return "st-curado";
+  return "";
+}
 
 function clean(s){ return (s||"").toString().replace(/\s+\n/g,"\n").replace(/\n+/g," ").replace(/\s+/g," ").trim(); }
 function multiline(s){ return (s||"").toString().split("\n").map(x=>x.trim()).filter(Boolean); }
@@ -518,7 +552,8 @@ function setupFilters(){
   populate('fTrilha', uniq('trilha'));
   populate('fPublico', uniq('publico'));
   populate('fNivel', uniq('nivel'));
-  ['search','fTema','fTrilha','fPublico','fNivel'].forEach(id => {
+  populate('fStatus', uniq('status'));
+  ['search','fTema','fTrilha','fPublico','fNivel','fStatus'].forEach(id => {
     document.getElementById(id).addEventListener('input', applyFilters);
     document.getElementById(id).addEventListener('change', applyFilters);
   });
@@ -572,13 +607,17 @@ function renderMvpPanel(){
 }
 
 function cardHtml(i){
+  const statusHtml = i.status ? '<span class="status-pill '+statusClass(i.status)+'">'+esc(i.status)+'</span>' : '<span class="prio">'+esc(i.prioridade||'')+'</span>';
   return '<div class="card" data-id="'+esc(i.id)+'">' +
-    '<div class="card-tab"><span class="id">'+esc(i.id)+'</span><span class="prio">'+esc(i.prioridade||'')+'</span></div>' +
+    '<div class="card-tab"><span class="id">'+esc(i.id)+'</span>'+statusHtml+'</div>' +
     '<div class="card-body">' +
       '<h3 class="card-title">'+esc(i.tf||i.tp)+'</h3>' +
       '<div class="card-meta">'+esc(i.palestrante)+' · '+esc(i.fonte)+' · '+esc(i.ano)+'</div>' +
+      (i.palestra ? '<div class="card-source">Palestra: '+esc(i.palestra)+'</div>' : '') +
       '<p class="card-resumo">'+esc(i.resumo)+'</p>' +
-      '<div class="tag-row"><span class="tag theme">'+esc(i.tema)+'</span><span class="tag">'+esc(i.nivel)+'</span><span class="tag">'+esc(i.publico)+'</span></div>' +
+      '<div class="tag-row"><span class="tag theme">'+esc(i.tema)+'</span><span class="tag">'+esc(i.nivel)+'</span><span class="tag">'+esc(i.publico)+'</span>'+
+      (i.linkYoutube ? '<span class="tag card-yt">▶ YouTube</span>' : '')+
+      '</div>' +
     '</div></div>';
 }
 
@@ -588,11 +627,13 @@ function applyFilters(){
   const trilha = document.getElementById('fTrilha').value;
   const publico = document.getElementById('fPublico').value;
   const nivel = document.getElementById('fNivel').value;
+  const status = document.getElementById('fStatus').value;
   const filtered = items.filter(i => {
     if(tema && i.tema!==tema) return false;
     if(trilha && i.trilha!==trilha) return false;
     if(publico && i.publico!==publico) return false;
     if(nivel && i.nivel!==nivel) return false;
+    if(status && i.status!==status) return false;
     if(q){
       const hay = (i.tf+' '+i.tp+' '+i.palestrante+' '+i.tema+' '+i.subtema+' '+i.resumo+' '+i.id).toLowerCase();
       if(!hay.includes(q)) return false;
@@ -613,9 +654,12 @@ function openDetail(id){
     '<div class="panel-grad"></div>' +
     '<div class="panel-inner">' +
     '<button class="close" id="closeBtn" aria-label="Fechar">&times;</button>' +
-    '<div class="id">'+esc(i.id)+' · '+esc(i.idAtivo||'')+'</div>' +
+    '<div class="id-row"><span class="id" style="margin-bottom:0;">'+esc(i.id)+' · '+esc(i.idAtivo||'')+'</span>' +
+      (i.status ? '<span class="status-pill '+statusClass(i.status)+'">'+esc(i.status)+'</span>' : '') +
+    '</div>' +
     '<h2>'+esc(i.tf||i.tp)+'</h2>' +
     '<div class="meta">'+esc(i.palestrante)+' <span>·</span> '+esc(i.fonte)+' <span>·</span> '+esc(i.ano)+' <span>·</span> '+esc(i.tcIni)+'–'+esc(i.tcFim)+'</div>' +
+    (i.palestra ? '<div class="meta">Palestra de origem: '+esc(i.palestra)+'</div>' : '') +
     '<div class="tag-row">' +
       '<span class="tag theme">'+esc(i.tema)+'</span><span class="tag">'+esc(i.subtema)+'</span>' +
       '<span class="tag">'+esc(i.nivel)+'</span><span class="tag">'+esc(i.publico)+'</span><span class="tag">'+esc(i.trilha)+'</span>' +
@@ -627,7 +671,10 @@ function openDetail(id){
     '<div class="footer-row">' +
       (i.tagsList.length ? i.tagsList.map(t=>'<span class="tag">'+esc(t)+'</span>').join('') : '') +
     '</div>' +
+    '<div class="btn-row">' +
+    (i.linkYoutube ? '<a class="btn-link youtube" href="'+esc(i.linkYoutube)+'" target="_blank" rel="noopener">▶ Assistir no YouTube</a>' : '') +
     (i.link ? '<a class="btn-link" href="'+esc(i.link)+'" target="_blank" rel="noopener">Abrir material de origem →</a>' : '') +
+    '</div>' +
     '</div>';
   document.getElementById('overlay').classList.add('open');
   document.getElementById('closeBtn').addEventListener('click', closeDetail);
