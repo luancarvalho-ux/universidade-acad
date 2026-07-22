@@ -271,7 +271,11 @@ select:focus{border-color:var(--navy);}
   color:var(--ink-dim);
 }
 .tag.theme{color:var(--gold-deep);border-color:var(--gold);background:var(--gold-tint);}
-.card-source{font-size:12px;color:var(--ink-faint);margin:-4px 0 12px;}
+.card-source{font-size:12.5px;color:var(--navy);margin:0 0 12px;padding:8px 10px;background:var(--navy-tint);border-left:3px solid var(--gold);border-radius:8px;font-weight:500;}
+.card-source strong{color:var(--gold-deep);font-weight:700;}
+.panel-origin{margin:8px 0 18px;padding:12px 14px;background:var(--navy-tint);border-left:4px solid var(--gold);border-radius:10px;}
+.panel-origin .origin-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold-deep);margin-bottom:4px;}
+.panel-origin .origin-title{display:block;font-size:16px;line-height:1.45;color:var(--navy);font-weight:600;}
 .status-pill{
   font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
   letter-spacing:0.06em;border-radius:100px;padding:2px 9px;white-space:nowrap;
@@ -643,7 +647,7 @@ function cardHtml(i){
     '<div class="card-body">' +
       '<h3 class="card-title">'+esc(i.tf||i.tp)+'</h3>' +
       '<div class="card-meta">'+esc(i.palestrante)+' · '+esc(i.fonte)+' · '+esc(i.ano)+'</div>' +
-      (i.palestra ? '<div class="card-source">Palestra: '+esc(i.palestra)+'</div>' : '') +
+      (i.palestra ? '<div class="card-source"><strong>Palestra de origem:</strong> '+esc(i.palestra)+'</div>' : '') +
       '<p class="card-resumo">'+esc(i.resumo)+'</p>' +
       '<div class="tag-row"><span class="tag theme">'+esc(i.tema)+'</span><span class="tag">'+esc(i.nivel)+'</span><span class="tag">'+esc(i.publico)+'</span>'+
       (i.linkYoutube ? '<span class="tag card-yt">▶ YouTube</span>' : '')+
@@ -690,7 +694,7 @@ function openDetail(id){
     '</div>' +
     '<h2>'+esc(i.tf||i.tp)+'</h2>' +
     '<div class="meta">'+esc(i.palestrante)+' <span>·</span> '+esc(i.fonte)+' <span>·</span> '+esc(i.ano)+' <span>·</span> '+esc(i.tcIni)+'–'+esc(i.tcFim)+'</div>' +
-    (i.palestra ? '<div class="meta">Palestra de origem: '+esc(i.palestra)+'</div>' : '') +
+    (i.palestra ? '<div class="panel-origin"><span class="origin-label">Palestra de origem</span><span class="origin-title">'+esc(i.palestra)+'</span></div>' : '') +
     '<div class="tag-row">' +
       '<span class="tag theme">'+esc(i.tema)+'</span><span class="tag">'+esc(i.subtema)+'</span>' +
       '<span class="tag">'+esc(i.nivel)+'</span><span class="tag">'+esc(i.publico)+'</span><span class="tag">'+esc(i.trilha)+'</span>' +
