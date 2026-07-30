@@ -238,6 +238,28 @@ select:focus{border-color:var(--navy);}
   border-radius:100px;
   padding:2px 8px;
 }
+.card-cut{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 16px;
+  background:var(--navy-tint);
+  border-bottom:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--navy);
+}
+.card-cut .cut-range{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-cut .cut-dur{
+  flex:0 0 auto;
+  background:var(--surface);
+  border:1px solid var(--line-strong);
+  border-radius:100px;
+  padding:1px 8px;
+  color:var(--ink-dim);
+  font-weight:500;
+}
 .card-body{padding:16px;}
 .card-title{
   font-family:'Inter',sans-serif;
@@ -553,6 +575,28 @@ function toMinutes(v){
   let secs = 0; for(const p of parts) secs = secs*60+p;
   return secs/60;
 }
+function toSeconds(v){
+  if(!v) return null;
+  const parts = String(v).trim().split(":").map(Number);
+  if(!parts.length || parts.some(isNaN)) return null;
+  let secs = 0; for(const p of parts) secs = secs*60+p;
+  return secs;
+}
+function formatDuration(totalSecs){
+  if(totalSecs===null || isNaN(totalSecs)) return "";
+  totalSecs = Math.round(totalSecs);
+  const m = Math.floor(totalSecs/60);
+  const s = totalSecs%60;
+  if(m<=0) return s+"s";
+  return m+"min"+(s? " "+s+"s" : "");
+}
+function cutDuration(i){
+  const ini = toSeconds(i.tcIni);
+  const fim = toSeconds(i.tcFim);
+  if(ini!==null && fim!==null && fim>=ini) return formatDuration(fim-ini);
+  if(i.dur){ const d = toNum(i.dur, null); if(d!==null) return formatDuration(d*60); }
+  return "";
+}
 
 let items = [];
 let mvpGoals = { aulasMeta:50, trilhasMeta:5, horasMin:15 };
@@ -642,8 +686,11 @@ function renderMvpPanel(){
 
 function cardHtml(i){
   const statusHtml = i.status ? '<span class="status-pill '+statusClass(i.status)+'">'+esc(i.status)+'</span>' : '<span class="prio">'+esc(i.prioridade||'')+'</span>';
+  const dur = cutDuration(i);
+  const hasTc = i.tcIni || i.tcFim;
   return '<div class="card" data-id="'+esc(i.id)+'">' +
     '<div class="card-tab"><span class="id">'+esc(i.id)+'</span>'+statusHtml+'</div>' +
+    (hasTc ? '<div class="card-cut"><span class="cut-range">⏱ '+esc(i.tcIni)+'–'+esc(i.tcFim)+'</span>'+(dur? '<span class="cut-dur">'+esc(dur)+'</span>' : '')+'</div>' : '') +
     '<div class="card-body">' +
       '<h3 class="card-title">'+esc(i.tf||i.tp)+'</h3>' +
       '<div class="card-meta">'+esc(i.palestrante)+' · '+esc(i.fonte)+' · '+esc(i.ano)+'</div>' +
@@ -693,7 +740,7 @@ function openDetail(id){
       (i.status ? '<span class="status-pill '+statusClass(i.status)+'">'+esc(i.status)+'</span>' : '') +
     '</div>' +
     '<h2>'+esc(i.tf||i.tp)+'</h2>' +
-    '<div class="meta">'+esc(i.palestrante)+' <span>·</span> '+esc(i.fonte)+' <span>·</span> '+esc(i.ano)+' <span>·</span> '+esc(i.tcIni)+'–'+esc(i.tcFim)+'</div>' +
+    '<div class="meta">'+esc(i.palestrante)+' <span>·</span> '+esc(i.fonte)+' <span>·</span> '+esc(i.ano)+' <span>·</span> '+esc(i.tcIni)+'–'+esc(i.tcFim)+(cutDuration(i) ? ' <span>·</span> '+esc(cutDuration(i)) : '')+'</div>' +
     (i.palestra ? '<div class="panel-origin"><span class="origin-label">Palestra de origem</span><span class="origin-title">'+esc(i.palestra)+'</span></div>' : '') +
     '<div class="tag-row">' +
       '<span class="tag theme">'+esc(i.tema)+'</span><span class="tag">'+esc(i.subtema)+'</span>' +
