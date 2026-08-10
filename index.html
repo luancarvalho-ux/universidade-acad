@@ -214,16 +214,6 @@ select:focus{border-color:var(--navy);}
   letter-spacing:0.05em;
   color:var(--gold);
 }
-.card-tab .prio{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  color:#CFE0F5;
-  border:1px solid rgba(255,255,255,0.25);
-  border-radius:100px;
-  padding:2px 8px;
-}
 .card-cut{
   display:flex;
   align-items:center;
@@ -467,8 +457,8 @@ const HEADER_MAP = {
   "Nível":"nivel","Trilha Sugerida":"trilha","Tipo Editorial":"tipo","Timecode Inicial":"tcIni",
   "Timecode Final":"tcFim","Duração Estimada (min)":"dur","Nota Imagem":"nImg","Nota Áudio":"nAudio",
   "Nota Atualidade":"na","Nota Conteúdo":"nc","Nota Didática":"nd","Potencial MVP":"mvp",
-  "Necessita Edição":"ne","Direitos / Autorização":"direitos","Materiais Complementares":"materiais",
-  "Prioridade":"prioridade","Status":"status","Tags":"tags","Link / Referência":"link","Observações":"obs",
+  "Direitos / Autorização":"direitos","Materiais Complementares":"materiais",
+  "Status":"status","Tags":"tags","Link / Referência":"link","Observações":"obs",
   "Palestra":"palestra","Link YouTube":"linkYoutube","Link para YouTube":"linkYoutube","Link Para Youtube":"linkYoutube","Link do YouTube":"linkYoutube"
 };
 
@@ -633,7 +623,7 @@ function renderOverview(){
 }
 
 function cardHtml(i){
-  const statusHtml = i.status ? '<span class="status-pill '+statusClass(i.status)+'">'+esc(i.status)+'</span>' : '<span class="prio">'+esc(i.prioridade||'')+'</span>';
+  const statusHtml = i.status ? '<span class="status-pill '+statusClass(i.status)+'">'+esc(i.status)+'</span>' : '';
   const dur = cutDuration(i);
   const hasTc = i.tcIni || i.tcFim;
   return '<div class="card" data-id="'+esc(i.id)+'">' +
