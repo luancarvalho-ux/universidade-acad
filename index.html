@@ -78,68 +78,54 @@ h1.title em{
   max-width:600px;
   margin:0 0 32px;
 }
-.stat-row{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:1px;
-  background:var(--line);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  overflow:hidden;
-  max-width:760px;
-}
-.stat{
+.overview-panel{
+  position:relative;
   background:var(--surface);
-  padding:18px 20px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:36px;
+  box-shadow:0 1px 2px rgba(18,50,98,0.04);
 }
-.stat .num{
+.overview-grad{height:4px;background:var(--grad);}
+.overview-inner{padding:26px 28px 28px;}
+.overview-title{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin-bottom:18px;
+}
+.overview-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+}
+.overview-stat{
+  padding:0 24px;
+  border-left:1px solid var(--line);
+}
+.overview-stat:first-child{padding-left:0;border-left:none;}
+.overview-stat .num{
   font-family:'Inter',sans-serif;
-  font-size:27px;
+  font-size:32px;
   font-weight:700;
   color:var(--navy);
   display:block;
   line-height:1;
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
-.stat .lab{
-  font-size:12px;
+.overview-stat .lab{
+  font-size:12.5px;
+  color:var(--ink-dim);
+  font-weight:500;
+}
+.overview-stat .sub{
+  font-size:11.5px;
   color:var(--ink-faint);
-  text-transform:uppercase;
-  letter-spacing:0.06em;
+  margin-top:2px;
 }
-.mvp-card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:20px 22px 22px;
-  margin-bottom:28px;
-}
-.mvp-head{
-  display:flex;justify-content:space-between;align-items:baseline;
-  flex-wrap:wrap;gap:6px;margin-bottom:16px;
-}
-.mvp-note{font-size:12px;color:var(--ink-dim);}
-.mvp-bars{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:18px;}
-.mvp-bar-head{
-  display:flex;justify-content:space-between;font-size:12.5px;
-  color:var(--ink-dim);margin-bottom:6px;
-}
-.mvp-bar-head span:first-child{color:var(--ink);font-weight:500;}
-.mvp-bar-val{font-family:'IBM Plex Mono',monospace;font-size:11px;}
-.mvp-bar-track{
-  height:6px;background:var(--navy-tint);border-radius:100px;overflow:hidden;
-}
-.mvp-bar-fill{height:100%;background:var(--gold);border-radius:100px;}
-.mvp-pills{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
-  border-top:1px solid var(--line);padding-top:16px;
-}
-.mvp-pill{
-  background:var(--navy-tint);border-radius:8px;padding:10px 12px;
-  display:flex;flex-direction:column;gap:2px;
-}
-.mvp-pill-num{font-size:19px;font-weight:700;color:var(--navy);}
-.mvp-pill-lab{font-size:11px;color:var(--ink-dim);}
 .controls{
   display:flex;
   flex-wrap:wrap;
@@ -397,10 +383,11 @@ select:focus{border-color:var(--navy);}
   header.hero{padding:32px 16px 24px;}
   h1.title{font-size:26px;}
   .hero-sub{font-size:14px;}
-  .stat-row{grid-template-columns:repeat(2,1fr);}
-  .mvp-card{padding:16px 16px 18px;margin-bottom:20px;}
-  .mvp-bars{grid-template-columns:1fr;gap:14px;}
-  .mvp-pills{grid-template-columns:repeat(2,1fr);}
+  .overview-inner{padding:20px 18px 22px;}
+  .overview-grid{grid-template-columns:repeat(2,1fr);gap:16px;}
+  .overview-stat{padding:0;border-left:none;border-top:1px solid var(--line);padding-top:14px;}
+  .overview-stat:nth-child(-n+2){border-top:none;padding-top:0;}
+  .overview-stat .num{font-size:26px;}
   .controls{
     flex-direction:column;align-items:stretch;
     position:static;padding:12px 0;
@@ -422,10 +409,15 @@ select:focus{border-color:var(--navy);}
   <div class="eyebrow">Biblioteca do gestor · Universidade ACAD</div>
   <h1 class="title">Acervo curado</h1>
   <p class="hero-sub">Uma seleção editorial de aulas, palestras e entrevistas do ecossistema Acad Brasil, organizada para consulta rápida por liderança e diretoria.</p>
-  <div class="stat-row" id="statRow"></div>
 </header>
 
-<div class="mvp-card" id="mvpPanel"><div class="load-state">Carregando painel MVP…</div></div>
+<div class="overview-panel">
+  <div class="overview-grad"></div>
+  <div class="overview-inner">
+    <div class="overview-title">Visão geral do acervo · dados ao vivo da planilha</div>
+    <div class="overview-grid" id="overviewGrid"><div class="load-state">Carregando…</div></div>
+  </div>
+</div>
 
 <div class="controls">
   <div class="search-box">
@@ -467,7 +459,6 @@ select:focus{border-color:var(--navy);}
 <script>
 /* ====== fontes de dados ao vivo (Google Sheets publicado em CSV) ====== */
 const CATALOG_CSV_URLS = ["https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/export?format=csv&gid=403260780", "https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/gviz/tq?tqx=out:csv&gid=403260780", "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIIkd9Bp1pr2P41oa8ncCFAc-XZGZnRVVKalTxhNxe2GH8nCDqlYqkCSA1vGSjxm2ZtCeAHtwwc2lq/pub?gid=403260780&single=true&output=csv"];
-const MVP_CSV_URLS = ["https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/export?format=csv&gid=2063395467", "https://docs.google.com/spreadsheets/d/1wLLSBl-0Xp0whBIbuMKkf8YCZ4GINMOf7v5GjZ1lCHU/gviz/tq?tqx=out:csv&gid=2063395467", "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIIkd9Bp1pr2P41oa8ncCFAc-XZGZnRVVKalTxhNxe2GH8nCDqlYqkCSA1vGSjxm2ZtCeAHtwwc2lq/pub?gid=2063395467&single=true&output=csv"];
 
 const HEADER_MAP = {
   "ID Conteúdo":"id","ID Ativo de Origem":"idAtivo","Título Provisório":"tp","Título Final":"tf",
@@ -554,19 +545,6 @@ function parseCatalog(rows){
   return items;
 }
 
-function findLabelValue(rows, keywords){
-  for(const r of rows){
-    const label = (r[0]||"").toString().toLowerCase();
-    if(!label) continue;
-    if(keywords.every(k => label.includes(k))){
-      for(let i=1;i<r.length;i++){
-        const v = r[i];
-        if(v !== undefined && String(v).trim() !== "") return String(v).trim();
-      }
-    }
-  }
-  return null;
-}
 function toNum(v, fallback){ const n = parseFloat(String(v).replace(",",".")); return isNaN(n) ? fallback : n; }
 function toMinutes(v){
   if(!v) return 0;
@@ -599,22 +577,21 @@ function cutDuration(i){
 }
 
 let items = [];
-let mvpGoals = { aulasMeta:50, trilhasMeta:5, horasMin:15 };
+
+// Status "Revisar" identifica conteúdo que foi mesclado a outro registro durante a
+// curadoria — não é um item independente do acervo, então fica fora de contagens e da grade.
+function isCounted(i){ return (i.status||"").trim().toLowerCase() !== "revisar"; }
 
 async function init(){
   try{
-    const [catalogRows, mvpRows] = await Promise.all([fetchCsv(CATALOG_CSV_URLS), fetchCsv(MVP_CSV_URLS)]);
-    items = parseCatalog(catalogRows);
-    mvpGoals.aulasMeta = toNum(findLabelValue(mvpRows, ["meta","aula"]), 50);
-    mvpGoals.trilhasMeta = toNum(findLabelValue(mvpRows, ["meta","trilha"]), 5);
-    mvpGoals.horasMin = toNum(findLabelValue(mvpRows, ["horas","mín"]), 15);
+    const catalogRows = await fetchCsv(CATALOG_CSV_URLS);
+    items = parseCatalog(catalogRows).filter(isCounted);
     setupFilters();
-    renderStats();
-    renderMvpPanel();
+    renderOverview();
     applyFilters();
   }catch(err){
     document.getElementById('grid').innerHTML = '<div class="err-state">Não foi possível carregar o acervo agora. Verifique se a planilha ainda está publicada na web e tente recarregar a página.</div>';
-    document.getElementById('mvpPanel').innerHTML = '<div class="err-state">Painel MVP indisponível no momento.</div>';
+    document.getElementById('overviewGrid').innerHTML = '<div class="err-state">Visão geral indisponível no momento.</div>';
     console.error(err);
   }
 }
@@ -637,51 +614,22 @@ function setupFilters(){
   });
 }
 
-function renderStats(){
+function renderOverview(){
   const trilhas = uniq('trilha').length;
-  const stats = [[items.length,'conteúdos curados'],[trilhas,'trilhas ativas']];
-  document.getElementById('statRow').innerHTML = stats.map(s =>
-    '<div class="stat"><span class="num">'+s[0]+'</span><span class="lab">'+s[1]+'</span></div>'
-  ).join('');
-}
+  const palestrantes = uniq('palestrante').length;
+  const horasNum = items.reduce((sum,i)=>sum+toMinutes(i.dur),0)/60;
+  const horasLabel = horasNum.toLocaleString('pt-BR',{maximumFractionDigits:1});
+  const publicados = items.filter(i=>(i.status||"").trim().toLowerCase()==="publicado").length;
 
-function renderMvpPanel(){
-  const trilhas = uniq('trilha').length;
-  const ativosTotal = uniq('idAtivo').length;
-  const horasAtualNum = items.reduce((sum,i)=>sum+toMinutes(i.dur),0)/60;
-  const horasAtualLabel = horasAtualNum.toLocaleString('pt-BR',{maximumFractionDigits:1});
-  const mvpSim = items.filter(i=>(i.mvp||"").trim().toLowerCase()==="sim").length;
-  const prioridadeAlta = items.filter(i=>(i.prioridade||"").trim().toLowerCase()==="alta").length;
-  const necessitaEdicao = items.filter(i=>(i.ne||"").trim().toLowerCase()==="sim").length;
-  const direitosPendentes = items.filter(i=>{ const d=(i.direitos||"").trim().toLowerCase(); return d==="pendente"||d==="verificar"; }).length;
+  const stat = (num, lab, sub) =>
+    '<div class="overview-stat"><span class="num">'+num+'</span><span class="lab">'+lab+'</span>'+
+    (sub ? '<span class="sub">'+sub+'</span>' : '')+'</div>';
 
-  const pctAulas = Math.min(100, Math.round((items.length/mvpGoals.aulasMeta)*100));
-  const pctTrilhas = Math.min(100, Math.round((trilhas/mvpGoals.trilhasMeta)*100));
-  const pctHoras = Math.min(100, Math.round((horasAtualNum/mvpGoals.horasMin)*100));
-
-  const bar = (label, atual, meta, unidade, pct) =>
-    '<div class="mvp-bar-row">' +
-      '<div class="mvp-bar-head"><span>'+label+'</span><span class="mvp-bar-val">'+atual+' / '+meta+' '+unidade+'</span></div>' +
-      '<div class="mvp-bar-track"><div class="mvp-bar-fill" style="width:'+pct+'%"></div></div>' +
-    '</div>';
-  const pill = (label, val) => '<div class="mvp-pill"><span class="mvp-pill-num">'+val+'</span><span class="mvp-pill-lab">'+label+'</span></div>';
-
-  document.getElementById('mvpPanel').innerHTML =
-    '<div class="mvp-head">' +
-      '<span class="select-label" style="font-size:11px;">Painel MVP · dados ao vivo da planilha</span>' +
-      '<span class="mvp-note">'+ativosTotal+' vídeos brutos → '+items.length+' conteúdos editoriais curados</span>' +
-    '</div>' +
-    '<div class="mvp-bars">' +
-      bar('Aulas curadas', items.length, mvpGoals.aulasMeta, '', pctAulas) +
-      bar('Trilhas identificadas', trilhas, mvpGoals.trilhasMeta, '', pctTrilhas) +
-      bar('Horas de conteúdo', horasAtualLabel, mvpGoals.horasMin, 'h mín.', pctHoras) +
-    '</div>' +
-    '<div class="mvp-pills">' +
-      pill('Potencial MVP = Sim', mvpSim) +
-      pill('Prioridade alta', prioridadeAlta) +
-      pill('Necessita edição', necessitaEdicao) +
-      pill('Direitos pendentes', direitosPendentes) +
-    '</div>';
+  document.getElementById('overviewGrid').innerHTML =
+    stat(items.length, 'Conteúdos curados', publicados+' publicados') +
+    stat(trilhas, 'Trilhas ativas') +
+    stat(horasLabel+'h', 'Horas de conteúdo') +
+    stat(palestrantes, 'Palestrantes');
 }
 
 function cardHtml(i){
